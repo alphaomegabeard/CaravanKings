@@ -2,8 +2,8 @@ extends Node
 
 signal inventory_changed(new_inventory: Dictionary)
 
-const SAVE_PATH := "user://savegame.json"
-const RESOURCE_TYPES := ["Scrap", "Fuel", "Food", "Water"]
+const SAVE_PATH: String = "user://savegame.json"
+const RESOURCE_TYPES: PackedStringArray = ["Scrap", "Fuel", "Food", "Water"]
 
 @export var world_seed: int = 1337
 @export var chunk_size: int = 32
@@ -27,12 +27,12 @@ func reset_inventory() -> void:
 func add_resource(resource_name: String, amount: int = 1) -> void:
 	if not inventory.has(resource_name):
 		inventory[resource_name] = 0
-	inventory[resource_name] += amount
+	inventory[resource_name] = int(inventory[resource_name]) + amount
 	emit_signal("inventory_changed", inventory.duplicate(true))
 
 
 func save_game(caravan_transform: Transform3D) -> bool:
-	var payload := {
+	var payload: Dictionary = {
 		"seed": world_seed,
 		"inventory": inventory,
 		"caravan": {
@@ -45,7 +45,7 @@ func save_game(caravan_transform: Transform3D) -> bool:
 		}
 	}
 
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
 		push_error("Unable to save game at %s" % SAVE_PATH)
 		return false
@@ -58,12 +58,12 @@ func load_game() -> Dictionary:
 	if not FileAccess.file_exists(SAVE_PATH):
 		return {}
 
-	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.READ)
 	if file == null:
 		push_error("Unable to open save file at %s" % SAVE_PATH)
 		return {}
 
-	var parsed := JSON.parse_string(file.get_as_text())
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_error("Save file is invalid JSON")
 		return {}
@@ -91,10 +91,10 @@ func build_transform_from_save(data: Dictionary) -> Transform3D:
 	if origin_data.size() != 3 or basis_data.size() != 3:
 		return Transform3D.IDENTITY
 
-	var basis := Basis(
+	var basis: Basis = Basis(
 		Vector3(basis_data[0][0], basis_data[0][1], basis_data[0][2]),
 		Vector3(basis_data[1][0], basis_data[1][1], basis_data[1][2]),
 		Vector3(basis_data[2][0], basis_data[2][1], basis_data[2][2])
 	)
-	var origin := Vector3(origin_data[0], origin_data[1], origin_data[2])
+	var origin: Vector3 = Vector3(origin_data[0], origin_data[1], origin_data[2])
 	return Transform3D(basis, origin)
