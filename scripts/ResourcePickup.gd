@@ -13,7 +13,7 @@ func _ready() -> void:
 func activate() -> void:
 	visible = true
 	monitoring = true
-	if label != null:
+	if label:
 		label.text = resource_type
 
 
