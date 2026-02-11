@@ -10,9 +10,9 @@ class_name CaravanController
 
 @onready var camera: Camera3D = $Camera3D
 
-var speed: float = 0.0
-var move_target: Vector3 = Vector3.ZERO
-var has_target: bool = false
+var speed := 0.0
+var move_target: Vector3
+var has_target := false
 
 func _ready() -> void:
 	add_to_group("caravan")
@@ -30,18 +30,18 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	var steering_input: float = Input.get_axis("ui_left", "ui_right")
-	var throttle_input: float = Input.get_axis("ui_down", "ui_up")
+	var steering_input := Input.get_axis("ui_left", "ui_right")
+	var throttle_input := Input.get_axis("ui_down", "ui_up")
 
 	if has_target:
-		var to_target: Vector3 = move_target - global_position
+		var to_target := move_target - global_position
 		to_target.y = 0.0
 		if to_target.length() < 1.2:
 			has_target = false
 		else:
-			var desired_dir: Vector3 = to_target.normalized()
-			var forward: Vector3 = -global_basis.z
-			var angle: float = forward.signed_angle_to(desired_dir, Vector3.UP)
+			var desired_dir := to_target.normalized()
+			var forward := -global_basis.z
+			var angle := forward.signed_angle_to(desired_dir, Vector3.UP)
 			rotation.y += clamp(angle, -turn_speed * delta, turn_speed * delta)
 			throttle_input = 1.0
 
@@ -53,25 +53,23 @@ func _physics_process(delta: float) -> void:
 	if absf(steering_input) > 0.01 and not has_target:
 		rotation.y -= steering_input * turn_speed * delta
 
-	var forward_velocity: Vector3 = -global_basis.z * speed
+	var forward_velocity := -global_basis.z * speed
 	velocity.x = forward_velocity.x
 	velocity.z = forward_velocity.z
 	velocity.y -= gravity * delta
 
 	move_and_slide()
 
-	if camera != null:
+	if camera:
 		camera.look_at(global_position + Vector3(0.0, -1.2, -1.2), Vector3.UP)
 
 
 func _set_target_from_screen(screen_pos: Vector2) -> void:
 	if camera == null:
 		return
-	var origin: Vector3 = camera.project_ray_origin(screen_pos)
-	var direction: Vector3 = camera.project_ray_normal(screen_pos)
-	if is_zero_approx(direction.y):
-		return
-	var t: float = (tap_plane_y - origin.y) / direction.y
+	var origin := camera.project_ray_origin(screen_pos)
+	var direction := camera.project_ray_normal(screen_pos)
+	var t := (tap_plane_y - origin.y) / direction.y
 	if t <= 0.0:
 		return
 	move_target = origin + direction * t
